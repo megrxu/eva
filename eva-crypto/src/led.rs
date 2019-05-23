@@ -1,14 +1,19 @@
-use super::generic::{u8x4x4, Ops, Permutation};
+use super::generic::{create_u8x4x4, u8x4x4, Ops, Permutation};
 
+/// LED block cipher's block length is 64 bits, and it supports 3 key lengths of 64, 80 and 128 bits in the [paper](https://link.springer.com/chapter/10.1007/978-3-642-23951-9_22).
 pub struct LED {
+    /// Each element in the key vector should be 4-bit(ranges from 0x0 to 0xf).
     key: Vec<u8>,
+    /// `ns` represents the number of steps.
     ns: u8,
+    /// `keysize` can be 64, 80 and 128.
     keysize: u8,
 }
 
 type LEDstate = u8x4x4;
 
 impl LED {
+    /// Initialize a LED cipher.
     pub fn new(key: &[u8]) -> Self {
         let keysize = key.len() * 4;
         let ns = match keysize {
@@ -24,8 +29,9 @@ impl LED {
         }
     }
 
+    /// Encrypt a block.
     pub fn encrypt(self, data: &[u8]) -> Vec<u8> {
-        let mut state = create_state(data);
+        let mut state = create_u8x4x4(data);
         for i in 0..self.ns {
             state = add_round_key(&state, &self.key, self.keysize, i);
             state = step(&state, self.keysize, i);
@@ -34,25 +40,18 @@ impl LED {
         state.concat()
     }
 
+    /// Decrypt a block.
     pub fn decrypt(self, data: &[u8]) -> Vec<u8> {
-        let mut state = create_state(data);
-        for i in 1..self.ns + 1 {
-            state = add_round_key(&state, &self.key, self.keysize, self.ns - i);
-            state = inv_step(&state, self.keysize, self.ns - i);
+        let mut state = create_u8x4x4(data);
+        for i in (0..self.ns).rev() {
+            state = add_round_key(&state, &self.key, self.keysize, i);
+            state = inv_step(&state, self.keysize, i);
         }
         state = add_round_key(&state, &self.key, self.keysize, 0);
         state.concat()
     }
 }
 
-fn create_state(input: &[u8]) -> LEDstate {
-    assert_eq!(input.len(), 16);
-    let mut state = [[0; 4]; 4];
-    for (i, &j) in input.iter().enumerate() {
-        state[i / 4][i % 4] = j;
-    }
-    state
-}
 fn step(state: &LEDstate, keysize: u8, round: u8) -> LEDstate {
     let mut out = state.clone();
     for i in 0..4 {
@@ -65,38 +64,34 @@ fn step(state: &LEDstate, keysize: u8, round: u8) -> LEDstate {
 }
 fn inv_step(state: &LEDstate, keysize: u8, round: u8) -> LEDstate {
     let mut out = state.clone();
-    for i in 0..4 {
+    for i in (0..4).rev() {
         out = inv_mix_columns_serial(&out);
         out = inv_shift_rows(&out);
         out = inv_sub_cells(&out);
-        out = add_constants(&out, round * 4 + (3 - i), keysize);
+        out = add_constants(&out, round * 4 + i, keysize);
     }
     out
 }
 fn add_round_key(state: &LEDstate, key: &Vec<u8>, keysize: u8, round: u8) -> LEDstate {
-    let mut out = state.clone();
-    let mut rkey: LEDstate = Default::default();
-    for i in 0..4 {
-        for j in 0..4 {
-            rkey[i][j] = key[((round * 16 + 4 * i as u8 + j as u8) % (keysize / 4)) as usize];
-            out[i][j] ^= rkey[i][j];
-        }
+    let mut rkey: [u8; 16] = [0; 16];
+    for i in 0..16 {
+        rkey[i] = key[((round * 16 + i as u8) % (keysize / 4)) as usize];
     }
-    out
+    state.xor(&create_u8x4x4(&rkey))
 }
 fn add_constants(state: &LEDstate, r: u8, keysize: u8) -> LEDstate {
     state.xor(&[
-        [0 ^ (keysize >> 4), (RCON[r as usize] >> 3) & 0x07, 0, 0],
-        [1 ^ ((keysize >> 4) & 0x0f), RCON[r as usize] & 0x07, 0, 0],
-        [2 ^ (keysize & 0x0f), (RCON[r as usize] >> 3) & 0x07, 0, 0],
-        [3 ^ (keysize & 0x0f), RCON[r as usize] & 0x07, 0, 0],
+        [0 ^ (keysize >> 4), (RCON[r as usize] >> 3) & 0x7, 0, 0],
+        [1 ^ ((keysize >> 4) & 0xf), RCON[r as usize] & 0x7, 0, 0],
+        [2 ^ (keysize & 0xf), (RCON[r as usize] >> 3) & 0x7, 0, 0],
+        [3 ^ (keysize & 0xf), RCON[r as usize] & 0x7, 0, 0],
     ])
 }
 fn sub_cells(state: &LEDstate) -> LEDstate {
     state.sub_sbox(&SBOX)
 }
 fn inv_sub_cells(state: &LEDstate) -> LEDstate {
-    state.sub_rsbox(&RSBOX)
+    state.sub_sbox(&RSBOX)
 }
 fn shift_rows(state: &LEDstate) -> LEDstate {
     state.lrot()

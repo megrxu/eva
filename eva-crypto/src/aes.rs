@@ -1,12 +1,13 @@
-use super::generic::{transpose, u8x4x4, Ops, Permutation};
+use super::generic::{create_u8x4x4, transpose, u8x4x4, Ops, Permutation};
 
 pub struct AES {
-    round_keys: Vec<AESstate>,
+    pub round_keys: Vec<AESstate>,
 }
 
 type AESstate = u8x4x4;
 
 impl AES {
+    /// Initialize a AES cipher.
     pub fn new(key: &[u8]) -> AES {
         let rounds = 10 + (key.len() / 4) - 4;
         let mut round_keys = vec![[[0; 4]; 4]; rounds + 1];
@@ -17,9 +18,10 @@ impl AES {
         }
     }
 
+    /// Encrypt a block.
     pub fn encrypt(self, data: &[u8]) -> Vec<u8> {
         let rounds = self.round_keys.len() - 1;
-        let mut state = create_state(data);
+        let mut state = create_u8x4x4(data);
         state = add_round_key(&state, &self.round_keys[0]);
 
         for i in 1..rounds {
@@ -36,9 +38,10 @@ impl AES {
         state.concat()
     }
 
+    /// Decrypt a block.
     pub fn decrypt(self, data: &[u8]) -> Vec<u8> {
         let rounds = self.round_keys.len() - 1;
-        let mut state = create_state(data);
+        let mut state = create_u8x4x4(data);
         state = add_round_key(&state, &self.round_keys[rounds]);
 
         for i in (1..rounds).rev() {
@@ -82,15 +85,6 @@ fn key_expansion(key: &[u8], round_keys: &mut [AESstate]) {
     }
 }
 
-fn create_state(input: &[u8]) -> AESstate {
-    assert_eq!(input.len(), 16);
-    let mut state = [[0; 4]; 4];
-    for (i, &j) in input.iter().enumerate() {
-        state[i / 4][i % 4] = j;
-    }
-    state
-}
-
 fn add_round_key(state: &AESstate, round_key: &AESstate) -> AESstate {
     state.xor(round_key)
 }
@@ -98,7 +92,7 @@ fn sub_bytes(state: &AESstate) -> AESstate {
     state.sub_sbox(&SBOX)
 }
 fn inv_sub_bytes(state: &AESstate) -> AESstate {
-    state.sub_rsbox(&RSBOX)
+    state.sub_sbox(&RSBOX)
 }
 fn shift_rows(state: &AESstate) -> AESstate {
     transpose(&transpose(state).lrot())
