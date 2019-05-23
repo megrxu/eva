@@ -7,7 +7,7 @@ pub struct AES {
 type AESstate = u8x4x4;
 
 impl AES {
-    /// Initialize a AES cipher.
+    /// Initialize an AES cipher.
     pub fn new(key: &[u8]) -> AES {
         let rounds = 10 + (key.len() / 4) - 4;
         let mut round_keys = vec![[[0; 4]; 4]; rounds + 1];

@@ -220,6 +220,39 @@ pub fn create_u8x4x4(data: &[u8]) -> u8x4x4 {
     state
 }
 
+/// Create u8x4 from an u32 value.
+/// ```
+/// use eva_crypto::generic::create_u8x4;
+/// assert_eq!(
+///        create_u8x4(0x0102_0304),
+///        [0x01, 0x02, 0x03, 0x04]
+///    );
+/// ```
+pub fn create_u8x4(data: u32) -> u8x4 {
+    [
+        (data >> 24) as u8,
+        (data >> 16) as u8,
+        (data >> 8) as u8,
+        data as u8,
+    ]
+}
+
+/// Create u32 from an u8 array.
+/// ```
+/// use eva_crypto::generic::u8x4_to_u32;
+/// assert_eq!(
+///        u8x4_to_u32(&[0x01, 0x02, 0x03, 0x04]),
+///        0x0102_0304
+///    );
+/// ```
+pub fn u8x4_to_u32(data: &u8x4) -> u32 {
+    let mut ret: u32 = 0;
+    for i in 0..4 {
+        ret ^= (data[3 - i] as u32) << (i * 8);
+    }
+    ret
+}
+
 /// Transpose a 4x4 state matrix, used in many blcok ciphers.
 /// ```
 /// use eva_crypto::generic::transpose;
