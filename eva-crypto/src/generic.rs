@@ -164,7 +164,8 @@ impl Ops for u8 {
     }
 }
 
-fn gmul_x(mut a: u8, mut b: u8, poly: u8, bits: u8) -> u8 {
+/// Implementation of Galois field multiplication. `poly` denotes the used irreducible polynomial in bits.
+pub fn gmul_x(mut a: u8, mut b: u8, poly: u8, bits: u8) -> u8 {
     let mut p = 0;
     while a != 0 && b != 0 {
         if b & 1 != 0 {
@@ -202,6 +203,41 @@ impl Permutation for u8x4x4 {
     }
 }
 
+/// Create a 4x4 state matrix from a 16 sized u8 array, used in many blcok ciphers.
+/// ```
+/// use eva_crypto::generic::create_u8x4x4;
+/// assert_eq!(
+///        create_u8x4x4(&[0x1; 16]),
+///        [[0x1;4]; 4]
+///    );
+/// ```
+pub fn create_u8x4x4(data: &[u8]) -> u8x4x4 {
+    assert_eq!(data.len(), 16);
+    let mut state = [[0; 4]; 4];
+    for (i, &j) in data.iter().enumerate() {
+        state[i / 4][i % 4] = j;
+    }
+    state
+}
+
+/// Transpose a 4x4 state matrix, used in many blcok ciphers.
+/// ```
+/// use eva_crypto::generic::transpose;
+/// assert_eq!(
+///     transpose(&[
+///         [0x1, 0x2, 0x3, 0x4],
+///         [0x0, 0x0, 0x0, 0x0],
+///         [0x0, 0x0, 0x0, 0x0],
+///         [0x0, 0x0, 0x0, 0x0],
+///     ]),
+///     [
+///         [0x1, 0x0, 0x0, 0x0],
+///         [0x2, 0x0, 0x0, 0x0],
+///         [0x3, 0x0, 0x0, 0x0],
+///         [0x4, 0x0, 0x0, 0x0],
+///     ]
+/// );
+/// ```
 pub fn transpose(input: &u8x4x4) -> u8x4x4 {
     let mut out = [[0; 4]; 4];
     for (i, &n) in input.iter().enumerate() {
@@ -210,15 +246,6 @@ pub fn transpose(input: &u8x4x4) -> u8x4x4 {
         }
     }
     out
-}
-
-pub fn create_u8x4x4(data: &[u8]) -> u8x4x4 {
-    assert_eq!(data.len(), 16);
-    let mut state = [[0; 4]; 4];
-    for (i, &j) in data.iter().enumerate() {
-        state[i / 4][i % 4] = j;
-    }
-    state
 }
 
 /// Expand the data to bits vector.
