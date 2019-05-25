@@ -100,10 +100,10 @@ fn inv_shift_rows(state: &LEDstate) -> LEDstate {
     state.rrot()
 }
 fn mix_columns_serial(state: &LEDstate) -> LEDstate {
-    MDS.gmul(&state, 4)
+    state.gmul(&MDS, 4)
 }
 fn inv_mix_columns_serial(state: &LEDstate) -> LEDstate {
-    RMDS.gmul(&state, 4)
+    state.gmul(&RMDS, 4)
 }
 
 static RCON: [u8; 48] = [

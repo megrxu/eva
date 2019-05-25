@@ -108,28 +108,28 @@ impl Ops for u8x4x4 {
     /// ```
     fn gmul(&self, rhs: &Self, bits: u8) -> Self {
         [
-            rhs[0].gmul(&[self[0][0]; 4], bits),
-            rhs[0].gmul(&[self[1][0]; 4], bits),
-            rhs[0].gmul(&[self[2][0]; 4], bits),
-            rhs[0].gmul(&[self[3][0]; 4], bits),
+            self[0].gmul(&[rhs[0][0]; 4], bits),
+            self[0].gmul(&[rhs[1][0]; 4], bits),
+            self[0].gmul(&[rhs[2][0]; 4], bits),
+            self[0].gmul(&[rhs[3][0]; 4], bits),
         ]
         .xor(&[
-            rhs[1].gmul(&[self[0][1]; 4], bits),
-            rhs[1].gmul(&[self[1][1]; 4], bits),
-            rhs[1].gmul(&[self[2][1]; 4], bits),
-            rhs[1].gmul(&[self[3][1]; 4], bits),
+            self[1].gmul(&[rhs[0][1]; 4], bits),
+            self[1].gmul(&[rhs[1][1]; 4], bits),
+            self[1].gmul(&[rhs[2][1]; 4], bits),
+            self[1].gmul(&[rhs[3][1]; 4], bits),
         ])
         .xor(&[
-            rhs[2].gmul(&[self[0][2]; 4], bits),
-            rhs[2].gmul(&[self[1][2]; 4], bits),
-            rhs[2].gmul(&[self[2][2]; 4], bits),
-            rhs[2].gmul(&[self[3][2]; 4], bits),
+            self[2].gmul(&[rhs[0][2]; 4], bits),
+            self[2].gmul(&[rhs[1][2]; 4], bits),
+            self[2].gmul(&[rhs[2][2]; 4], bits),
+            self[2].gmul(&[rhs[3][2]; 4], bits),
         ])
         .xor(&[
-            rhs[3].gmul(&[self[0][3]; 4], bits),
-            rhs[3].gmul(&[self[1][3]; 4], bits),
-            rhs[3].gmul(&[self[2][3]; 4], bits),
-            rhs[3].gmul(&[self[3][3]; 4], bits),
+            self[3].gmul(&[rhs[0][3]; 4], bits),
+            self[3].gmul(&[rhs[1][3]; 4], bits),
+            self[3].gmul(&[rhs[2][3]; 4], bits),
+            self[3].gmul(&[rhs[3][3]; 4], bits),
         ])
     }
 }
