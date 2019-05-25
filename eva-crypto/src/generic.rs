@@ -19,6 +19,18 @@ pub trait Permutation {
 }
 
 impl Ops for u8x4x4 {
+    /// ```
+    /// use eva_crypto::generic::Ops;
+    /// assert_eq!(
+    ///     [[1, 2, 3, 4]; 4].lrot(),
+    ///     [
+    ///         [1, 2, 3, 4],
+    ///         [2, 3, 4, 1],
+    ///         [3, 4, 1, 2],
+    ///         [4, 1, 2, 3]
+    ///     ]
+    /// );
+    /// ```
     fn lrot(&self) -> Self {
         [
             self[0],
@@ -28,6 +40,13 @@ impl Ops for u8x4x4 {
         ]
     }
 
+    /// ```
+    /// use eva_crypto::generic::Ops;
+    /// assert_eq!(
+    ///     [[1, 2, 3, 4]; 4].lrot().rrot(),
+    ///     [[1, 2, 3, 4]; 4]
+    /// );
+    /// ```
     fn rrot(&self) -> Self {
         [
             self[0],
@@ -37,6 +56,13 @@ impl Ops for u8x4x4 {
         ]
     }
 
+    /// ```
+    /// use eva_crypto::generic::Ops;
+    /// assert_eq!(
+    ///     [[0x1, 0x2, 0x3, 0x4]; 4].xor(&[[0x11, 0x22, 0x33, 0x44]; 4]),
+    ///     [[0x10, 0x20, 0x30, 0x40]; 4]
+    /// );
+    /// ```
     fn xor(&self, rhs: &Self) -> Self {
         [
             self[0].xor(&rhs[0]),
@@ -45,6 +71,14 @@ impl Ops for u8x4x4 {
             self[3].xor(&rhs[3]),
         ]
     }
+
+    /// ```
+    /// use eva_crypto::generic::Ops;
+    /// assert_eq!(
+    ///     [[0x1, 0x2, 0x3, 0x4]; 4].and(&[[0x10, 0x20, 0x30, 0x40]; 4]),
+    ///     [[0; 4]; 4]
+    /// );
+    /// ```
     fn and(&self, rhs: &Self) -> Self {
         [
             self[0].and(&rhs[0]),
@@ -53,6 +87,25 @@ impl Ops for u8x4x4 {
             self[3].and(&rhs[3]),
         ]
     }
+
+    /// ```
+    /// use eva_crypto::generic::Ops;
+    /// assert_eq!(
+    ///     [
+    ///        [0x0e, 0x09, 0x0d, 0x0b],
+    ///        [0x0b, 0x0e, 0x09, 0x0d],
+    ///        [0x0d, 0x0b, 0x0e, 0x09],
+    ///        [0x09, 0x0d, 0x0b, 0x0e],
+    ///    ].gmul(
+    ///    &[
+    ///        [0x02, 0x01, 0x01, 0x03],
+    ///        [0x03, 0x02, 0x01, 0x01],
+    ///        [0x01, 0x03, 0x02, 0x01],
+    ///        [0x01, 0x01, 0x03, 0x02],
+    ///    ], 8),
+    ///    [[1, 0, 0, 0]; 4].rrot()
+    /// );
+    /// ```
     fn gmul(&self, rhs: &Self, bits: u8) -> Self {
         [
             rhs[0].gmul(&[self[0][0]; 4], bits),
@@ -92,6 +145,7 @@ impl Ops for u8x4 {
     fn lrot(&self) -> Self {
         [self[1], self[2], self[3], self[0]]
     }
+
     /// ```
     /// use eva_crypto::generic::Ops;
     /// assert_eq!(
@@ -102,6 +156,7 @@ impl Ops for u8x4 {
     fn rrot(&self) -> Self {
         [self[3], self[0], self[1], self[2]]
     }
+
     /// ```
     /// use eva_crypto::generic::Ops;
     /// assert_eq!(
@@ -109,6 +164,7 @@ impl Ops for u8x4 {
     ///     [0x3, 0x3, 0x3, 0x3]
     /// );
     /// ```
+
     fn xor(&self, rhs: &Self) -> Self {
         [
             self[0] ^ rhs[0],
@@ -117,6 +173,7 @@ impl Ops for u8x4 {
             self[3] ^ rhs[3],
         ]
     }
+
     /// ```
     /// use eva_crypto::generic::Ops;
     /// assert_eq!(
@@ -132,6 +189,7 @@ impl Ops for u8x4 {
             self[3] & rhs[3],
         ]
     }
+
     fn gmul(&self, rhs: &Self, bits: u8) -> Self {
         [
             self[0].gmul(&rhs[0], bits),
@@ -281,7 +339,7 @@ pub fn transpose(input: &u8x4x4) -> u8x4x4 {
     out
 }
 
-/// Expand the data to bits vector.
+/// Expand the data(4 bits) to bits vector.
 /// ```
 /// use eva_crypto::generic::expand_bits;
 /// assert_eq!(
@@ -305,7 +363,7 @@ pub fn expand_bits(data: &Vec<u8>) -> Vec<bool> {
     ret
 }
 
-/// Restore the data from a bit vector.
+/// Restore the data(4 bits) from a bit vector.
 /// ```
 /// use eva_crypto::generic::restore_data;
 /// assert_eq!(
