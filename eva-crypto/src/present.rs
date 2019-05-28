@@ -56,27 +56,27 @@ fn inv_sbox_layer(state: &PREstate) -> PREstate {
     state.sub_sbox(&RSBOX)
 }
 fn p_layer(state: &PREstate, pbox: &[u8]) -> PREstate {
-    let bits = expand_bits(&state.concat().to_vec());
+    let bits = expand_bits(&state.concat().to_vec(), 4);
     let mut p_bits: Vec<bool> = vec![true; 64];
     for i in 0..64 {
         p_bits[i] = bits[pbox[i] as usize];
     }
-    create_u8x4x4(&restore_data(&p_bits)[0..16])
+    create_u8x4x4(&restore_data(&p_bits, 4)[0..16])
 }
 fn key_expansion(key: Vec<u8>, round_keys: &mut [PREstate]) {
     let keysize = key.len() * 4;
     let rounds = round_keys.len();
-    let mut k_register = expand_bits(&key);
+    let mut k_register = expand_bits(&key, 4);
     match keysize {
         80 | 128 => (),
         _ => panic!("Key length {} is not valid!", keysize),
     }
 
     for i in 0..rounds {
-        round_keys[i] = create_u8x4x4(&restore_data(&k_register)[0..16]);
+        round_keys[i] = create_u8x4x4(&restore_data(&k_register, 4)[0..16]);
         // rotate left 61 bits
         k_register[..].rotate_left(61);
-        let mut buffer = restore_data(&k_register);
+        let mut buffer = restore_data(&k_register, 4);
         if keysize == 80 {
             // Sbox
             buffer[0] = SBOX[buffer[0] as usize];
@@ -91,7 +91,7 @@ fn key_expansion(key: Vec<u8>, round_keys: &mut [PREstate]) {
             buffer[15] ^= (i + 1 >> 2) as u8;
             buffer[16] ^= (i + 1 << 2 & 0xf) as u8;
         }
-        k_register = expand_bits(&buffer);
+        k_register = expand_bits(&buffer, 4);
     }
 }
 

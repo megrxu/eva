@@ -24,6 +24,4 @@ fn main() {
     assert!(solver.get_model()[0] == Lbool::True);
     assert!(solver.get_model()[1] == Lbool::False);
     assert!(solver.get_model()[2] == Lbool::True);
-
-
 }

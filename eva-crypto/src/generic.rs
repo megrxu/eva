@@ -339,46 +339,55 @@ pub fn transpose(input: &u8x4x4) -> u8x4x4 {
     out
 }
 
-/// Expand the data(4 bits) to bits vector.
+/// Expand the data to bits vector.
 /// ```
 /// use eva_crypto::generic::expand_bits;
 /// assert_eq!(
-///        expand_bits(&vec![0b0001, 0b1101]),
+///        expand_bits(&vec![0b0001, 0b1101], 4),
+///        [false, false, false, true, true, true, false, true]
+///    );
+/// assert_eq!(
+///        expand_bits(&vec![0b00011101], 0),
 ///        [false, false, false, true, true, true, false, true]
 ///    );
 /// ```
-pub fn expand_bits(data: &Vec<u8>) -> Vec<bool> {
+pub fn expand_bits(data: &Vec<u8>, skip: usize) -> Vec<bool> {
     let bytes = &data[..];
     let mut reader = BitReader::new(bytes);
     let mut ret: Vec<bool> = vec![];
     for _ in 0..data.len() {
-        match reader.skip(4) {
+        match reader.skip(skip as u64) {
             Ok(_) => (),
-            _ => unreachable!(),
+            _ => panic!("Skip size should be in range 0 - 7."),
         };
-        for _ in 0..4 {
+        for _ in 0..(8 - skip) {
             ret.push(reader.read_bool().unwrap());
         }
     }
     ret
 }
 
-/// Restore the data(4 bits) from a bit vector.
+/// Restore the data from a bit vector.
 /// ```
 /// use eva_crypto::generic::restore_data;
 /// assert_eq!(
-///     restore_data(&vec![false, false, false, true, true, true, false, true]),
+///     restore_data(&vec![false, false, false, true, true, true, false, true], 4),
 ///     [0b0001, 0b1101]
 /// );
+/// assert_eq!(
+///     restore_data(&vec![false, false, false, true, true, true, false, true], 0),
+///     [0b00011101]
+/// );
 /// ```
-pub fn restore_data(bits: &Vec<bool>) -> Vec<u8> {
+pub fn restore_data(bits: &Vec<bool>, skip: usize) -> Vec<u8> {
     let mut ret: Vec<u8> = vec![];
     let mut buffer: u8;
-    for i in (0..bits.len()).step_by(4) {
+    for i in (0..bits.len()).step_by(8 - skip) {
         buffer = 0;
-        for j in 0..4 {
+        let init = 0b10000000 >> skip;
+        for j in 0..(8 - skip) {
             match bits[i + j] {
-                true => buffer ^= 0b1000 >> j,
+                true => buffer ^= init >> j,
                 _ => (),
             }
         }
