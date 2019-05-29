@@ -3,4 +3,5 @@
 members = [
     "eva-solver",
     "eva-crypto",
+    "eva-builder"
 ]

@@ -28,6 +28,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "eva-builder"
+version = "0.1.0"
+dependencies = [
+ "eva-crypto 0.1.0",
+]
+
+[[package]]
 name = "eva-crypto"
 version = "0.1.0"
 dependencies = [

@@ -1,0 +1,8 @@
+[package]
+name = "eva-builder"
+version = "0.1.0"
+authors = ["Ray Xu <megrxu@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+eva-crypto = {path = "../eva-crypto"}
