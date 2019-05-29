@@ -46,6 +46,7 @@ name = "eva-solver"
 version = "0.1.0"
 dependencies = [
  "cryptominisat 5.6.3 (registry+https://github.com/rust-lang/crates.io-index)",
+ "eva-builder 0.1.0",
  "eva-crypto 0.1.0",
 ]
 
