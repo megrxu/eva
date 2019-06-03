@@ -1,6 +1,7 @@
 extern crate cryptominisat;
 use cryptominisat::{Lbool, Lit, Solver};
-use eva_builder::generic::Literal;
+
+type Literal = (u32, bool);
 
 fn clause(l: &[Literal]) -> Vec<Lit> {
     let lit = |var: u32, neg: bool| Lit::new(var, neg).unwrap();
