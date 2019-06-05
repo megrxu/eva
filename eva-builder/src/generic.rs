@@ -44,6 +44,23 @@ impl Instance {
         }
     }
 
+    pub fn clauses(self) -> Vec<(bool, Vec<(u32, bool)>)> {
+        let eqns = self.equations;
+        let vars = self.variables;
+        eqns.into_iter()
+            .map(|clause| {
+                (
+                    clause.clause_xor,
+                    clause
+                        .value
+                        .into_iter()
+                        .map(|lit| (*(vars.get(&lit.name).unwrap()), lit.value))
+                        .collect(),
+                )
+            })
+            .collect()
+    }
+
     pub fn add_clause(&mut self, clause: Clause) {
         self.equations.push(clause);
     }
