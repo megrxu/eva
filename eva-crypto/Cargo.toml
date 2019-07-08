@@ -3,6 +3,14 @@ name = "eva-crypto"
 version = "0.1.0"
 authors = ["Ray Xu <megrxu@gmail.com>"]
 edition = "2018"
+
+description = "Prototype level implementations of some encryption algorithms, with some generic traits."
+documentation = "https://docs.rs/eva-crypto"
+homepage = "https://github.com/megrxu/eva/tree/master/eva-crypto"
+repository = "https://github.com/megrxu/eva/"
+
+keywords = ["crypto", "experiment"]
+
 license = "MIT"
 
 [dependencies]
