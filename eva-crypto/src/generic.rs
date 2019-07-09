@@ -278,6 +278,14 @@ pub fn create_u8x4x4(data: &[u8]) -> u8x4x4 {
     state
 }
 
+pub fn create_u8x16(data: &u8x4x4) -> [u8; 16] {
+    let mut state = [0u8; 16];
+    for i in 0..16 {
+        state[i] = data[i / 4 as usize][i % 4 as usize];
+    }
+    state
+}
+
 /// Create u8x4 from an u32 value.
 /// ```
 /// use eva_crypto::generic::create_u8x4;

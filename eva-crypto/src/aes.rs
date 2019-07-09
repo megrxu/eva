@@ -2,6 +2,8 @@ use super::generic::{create_u8x4x4, transpose, u8x4x4, Ops, Permutation};
 
 pub struct AES {
     pub round_keys: Vec<AESstate>,
+    pub sbox: [u8; 256],
+    pub rsbox: [u8; 256],
 }
 
 type AESstate = u8x4x4;
@@ -15,23 +17,25 @@ impl AES {
 
         AES {
             round_keys: round_keys,
+            sbox: SBOX,
+            rsbox: RSBOX,
         }
     }
 
     /// Encrypt a block.
-    pub fn encrypt(self, data: &[u8]) -> Vec<u8> {
+    pub fn encrypt(&self, data: &[u8]) -> Vec<u8> {
         let rounds = self.round_keys.len() - 1;
         let mut state = create_u8x4x4(data);
         state = add_round_key(&state, &self.round_keys[0]);
 
         for i in 1..rounds {
-            state = sub_bytes(&state);
+            state = sub_bytes(&state, &self.sbox);
             state = shift_rows(&state);
             state = mix_columns(&state);
             state = add_round_key(&state, &self.round_keys[i]);
         }
 
-        state = sub_bytes(&state);
+        state = sub_bytes(&state, &self.sbox);
         state = shift_rows(&state);
         state = add_round_key(&state, &self.round_keys[rounds]);
 
@@ -39,23 +43,49 @@ impl AES {
     }
 
     /// Decrypt a block.
-    pub fn decrypt(self, data: &[u8]) -> Vec<u8> {
+    pub fn decrypt(&self, data: &[u8]) -> Vec<u8> {
         let rounds = self.round_keys.len() - 1;
         let mut state = create_u8x4x4(data);
         state = add_round_key(&state, &self.round_keys[rounds]);
 
         for i in (1..rounds).rev() {
             state = inv_shift_rows(&state);
-            state = inv_sub_bytes(&state);
+            state = inv_sub_bytes(&state, &self.rsbox);
             state = add_round_key(&state, &self.round_keys[i]);
             state = inv_mix_columns(&state);
         }
 
-        state = inv_sub_bytes(&state);
+        state = inv_sub_bytes(&state, &self.rsbox);
         state = inv_shift_rows(&state);
         state = add_round_key(&state, &self.round_keys[0]);
 
         state.concat()
+    }
+
+    // Injection of faults
+
+    pub fn with_sbox(mut self, faulty_sbox: [u8; 256]) -> Self {
+        self.sbox = faulty_sbox;
+        self
+    }
+
+    pub fn with_rsbox(mut self, faulty_rsbox: [u8; 256]) -> Self {
+        self.rsbox = faulty_rsbox;
+        self
+    }
+
+    pub fn with_sbox_byte(mut self, faulty_idx: usize, faulty_val: u8) -> Self {
+        let mut sbox = SBOX;
+        sbox[faulty_idx] = faulty_val;
+        self.sbox = sbox;
+        self
+    }
+
+    pub fn with_rsbox_byte(mut self, faulty_idx: usize, faulty_val: u8) -> Self {
+        let mut rsbox = RSBOX;
+        rsbox[faulty_idx] = faulty_val;
+        self.sbox = rsbox;
+        self
     }
 }
 
@@ -88,11 +118,11 @@ fn key_expansion(key: &[u8], round_keys: &mut [AESstate]) {
 fn add_round_key(state: &AESstate, round_key: &AESstate) -> AESstate {
     state.xor(round_key)
 }
-fn sub_bytes(state: &AESstate) -> AESstate {
-    state.sub_sbox(&SBOX)
+fn sub_bytes(state: &AESstate, sbox: &[u8]) -> AESstate {
+    state.sub_sbox(sbox)
 }
-fn inv_sub_bytes(state: &AESstate) -> AESstate {
-    state.sub_sbox(&RSBOX)
+fn inv_sub_bytes(state: &AESstate, rsbox: &[u8]) -> AESstate {
+    state.sub_sbox(rsbox)
 }
 fn shift_rows(state: &AESstate) -> AESstate {
     transpose(&transpose(state).lrot())
@@ -119,7 +149,7 @@ fn inv_mix_columns(state: &AESstate) -> AESstate {
     .gmul(&state, 8)
 }
 
-static SBOX: [u8; 256] = [
+pub static SBOX: [u8; 256] = [
     0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
     0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
     0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -138,7 +168,7 @@ static SBOX: [u8; 256] = [
     0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16,
 ];
 
-static RSBOX: [u8; 256] = [
+pub static RSBOX: [u8; 256] = [
     0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
     0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
     0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
