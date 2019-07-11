@@ -1,5 +1,3 @@
-use bitreader::BitReader;
-
 #[allow(non_camel_case_types)]
 pub type u8x4 = [u8; 4];
 
@@ -361,15 +359,17 @@ pub fn transpose(input: &u8x4x4) -> u8x4x4 {
 /// ```
 pub fn expand_bits(data: &Vec<u8>, skip: usize) -> Vec<bool> {
     let bytes = &data[..];
-    let mut reader = BitReader::new(bytes);
     let mut ret: Vec<bool> = vec![];
-    for _ in 0..data.len() {
-        match reader.skip(skip as u64) {
-            Ok(_) => (),
+    for i in 0..data.len() {
+        let mut byte = bytes[i];
+        match skip {
+            0...7 => (),
             _ => panic!("Skip size should be in range 0 - 7."),
         };
+        byte <<= skip;
         for _ in 0..(8 - skip) {
-            ret.push(reader.read_bool().unwrap());
+            ret.push(byte & 0b10000000 != 0);
+            byte = byte << 1;
         }
     }
     ret

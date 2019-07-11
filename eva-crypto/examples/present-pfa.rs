@@ -37,7 +37,7 @@ fn main() -> io::Result<()> {
         fc.read(&mut ciphertext)?;
 
         let c_bits = expand_bits(&ciphertext.to_vec(), 4);
-        let data = restore_data(&rpbox(c_bits), 4);
+        let data = restore_data(&pbox(c_bits, &RPBOX), 4);
         for i in 0..16 {
             stats[i][(data[i] ^ 0xc) as usize] += 1;
         }
@@ -60,7 +60,7 @@ fn main() -> io::Result<()> {
     println!(
         "Result: {:x?}",
         transpose(&create_u8x4x4(
-            &restore_data(&(pbox(expand_bits(&kc.to_vec(), 4))), 4)[0..16]
+            &restore_data(&(pbox(expand_bits(&kc.to_vec(), 4), &PBOX)), 4)[0..16]
         ))
     );
     println!("Residue Entropy: {}", size.log2());
@@ -68,20 +68,12 @@ fn main() -> io::Result<()> {
     Ok(())
 }
 
-fn rpbox(input: Vec<bool>) -> Vec<bool> {
-    let mut res = vec![true; 64];
-    for i in 0..64 {
-        res[i] = input[RPBOX[i] as usize];
-    }
-    res
-}
-
-fn pbox(input: Vec<bool>) -> Vec<bool> {
-    let mut res = vec![true; 64];
-    for i in 0..64 {
-        res[i] = input[PBOX[i] as usize];
-    }
-    res
+fn pbox(input: Vec<bool>, pbox: &[u8; 64]) -> Vec<bool> {
+    input
+        .iter()
+        .enumerate()
+        .map(|(i, _)| input[pbox[i] as usize])
+        .collect()
 }
 
 fn generate_data(key: [u8; 20]) -> io::Result<()> {
