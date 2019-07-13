@@ -1,8 +1,7 @@
-use eva_crypto::sm4::*;
 use eva_crypto::generic::u8x4_to_u32;
+use eva_crypto::sm4::*;
 
 #[cfg(test)]
-
 #[test]
 fn test_key_expansion() {
     let key: [u8; 16] = [
