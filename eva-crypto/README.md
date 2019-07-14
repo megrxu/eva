@@ -8,4 +8,4 @@ This crate aims at providing **prototype** level implementations of some encrypt
 - LED(-80, -128)
 - PRESENT(-80, -128)
 - SM4
-- SKINNY(-64-64)
+- SKINNY(-64-64, -64-128, -64-192, -128-128, -128-256, -128-384)

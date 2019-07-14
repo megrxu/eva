@@ -61,7 +61,7 @@ impl PRESENT {
     pub fn with_rsbox_byte(mut self, faulty_idx: usize, faulty_val: u8) -> Self {
         let mut rsbox = RSBOX;
         rsbox[faulty_idx] = faulty_val;
-        self.sbox = rsbox;
+        self.rsbox = rsbox;
         self
     }
 }
