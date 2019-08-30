@@ -26,7 +26,7 @@ impl LED {
         };
         LED {
             key: key.to_vec(),
-            ns: ns,
+            ns,
             keysize: keysize as u8,
             sbox: SBOX,
             rsbox: RSBOX,
@@ -72,7 +72,7 @@ impl LED {
 }
 
 fn step(state: &LEDstate, keysize: u8, round: u8, sbox: &[u8]) -> LEDstate {
-    let mut out = state.clone();
+    let mut out = *state;
     for i in 0..4 {
         out = add_constants(&out, round * 4 + i, keysize);
         out = sub_cells(&out, sbox);
@@ -82,7 +82,7 @@ fn step(state: &LEDstate, keysize: u8, round: u8, sbox: &[u8]) -> LEDstate {
     out
 }
 fn inv_step(state: &LEDstate, keysize: u8, round: u8, rsbox: &[u8]) -> LEDstate {
-    let mut out = state.clone();
+    let mut out = *state;
     for i in (0..4).rev() {
         out = inv_mix_columns_serial(&out);
         out = inv_shift_rows(&out);
@@ -91,7 +91,7 @@ fn inv_step(state: &LEDstate, keysize: u8, round: u8, rsbox: &[u8]) -> LEDstate 
     }
     out
 }
-fn add_round_key(state: &LEDstate, key: &Vec<u8>, keysize: u8, round: u8) -> LEDstate {
+fn add_round_key(state: &LEDstate, key: &[u8], keysize: u8, round: u8) -> LEDstate {
     let mut rkey: [u8; 16] = [0; 16];
     for i in 0..16 {
         rkey[i] = key[((round * 16 + i as u8) % (keysize / 4)) as usize];
@@ -100,7 +100,7 @@ fn add_round_key(state: &LEDstate, key: &Vec<u8>, keysize: u8, round: u8) -> LED
 }
 fn add_constants(state: &LEDstate, r: u8, keysize: u8) -> LEDstate {
     state.xor(&[
-        [0 ^ (keysize >> 4), (RCON[r as usize] >> 3) & 0x7, 0, 0],
+        [keysize >> 4, (RCON[r as usize] >> 3) & 0x7, 0, 0],
         [1 ^ ((keysize >> 4) & 0xf), RCON[r as usize] & 0x7, 0, 0],
         [2 ^ (keysize & 0xf), (RCON[r as usize] >> 3) & 0x7, 0, 0],
         [3 ^ (keysize & 0xf), RCON[r as usize] & 0x7, 0, 0],

@@ -305,11 +305,11 @@ pub fn create_u8x4(data: u32) -> u8x4 {
 /// ```
 /// use eva_crypto::generic::u8x4_to_u32;
 /// assert_eq!(
-///        u8x4_to_u32(&[0x01, 0x02, 0x03, 0x04]),
+///        u8x4_to_u32([0x01, 0x02, 0x03, 0x04]),
 ///        0x0102_0304
 ///    );
 /// ```
-pub fn u8x4_to_u32(data: &u8x4) -> u32 {
+pub fn u8x4_to_u32(data: u8x4) -> u32 {
     let mut ret: u32 = 0;
     for i in 0..4 {
         ret ^= (data[3 - i] as u32) << (i * 8);
@@ -353,23 +353,23 @@ pub fn transpose(input: &u8x4x4) -> u8x4x4 {
 ///        [false, false, false, true, true, true, false, true]
 ///    );
 /// assert_eq!(
-///        expand_bits(&vec![0b00011101], 0),
+///        expand_bits(&vec![0b0001_1101], 0),
 ///        [false, false, false, true, true, true, false, true]
 ///    );
 /// ```
-pub fn expand_bits(data: &Vec<u8>, skip: usize) -> Vec<bool> {
+pub fn expand_bits(data: &[u8], skip: usize) -> Vec<bool> {
     let bytes = &data[..];
     let mut ret: Vec<bool> = vec![];
-    for i in 0..data.len() {
-        let mut byte = bytes[i];
+    for &i in bytes.iter() {
+        let mut byte = i;
         match skip {
-            0...7 => (),
+            0..=7 => (),
             _ => panic!("Skip size should be in range 0 - 7."),
         };
         byte <<= skip;
         for _ in 0..(8 - skip) {
-            ret.push(byte & 0b10000000 != 0);
-            byte = byte << 1;
+            ret.push(byte & 0b1000_0000 != 0);
+            byte <<= 1;
         }
     }
     ret
@@ -384,19 +384,18 @@ pub fn expand_bits(data: &Vec<u8>, skip: usize) -> Vec<bool> {
 /// );
 /// assert_eq!(
 ///     restore_data(&vec![false, false, false, true, true, true, false, true], 0),
-///     [0b00011101]
+///     [0b0001_1101]
 /// );
 /// ```
-pub fn restore_data(bits: &Vec<bool>, skip: usize) -> Vec<u8> {
+pub fn restore_data(bits: &[bool], skip: usize) -> Vec<u8> {
     let mut ret: Vec<u8> = vec![];
     let mut buffer: u8;
     for i in (0..bits.len()).step_by(8 - skip) {
         buffer = 0;
-        let init = 0b10000000 >> skip;
+        let init = 0b1000_0000 >> skip;
         for j in 0..(8 - skip) {
-            match bits[i + j] {
-                true => buffer ^= init >> j,
-                _ => (),
+            if bits[i + j] {
+                buffer ^= init >> j;
             }
         }
         ret.push(buffer);

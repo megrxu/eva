@@ -1,4 +1,4 @@
-use super::generic::{Clause, Literal};
+use super::generic::Clause;
 
 pub struct Leakage {
     leakage_type: LeakageType,

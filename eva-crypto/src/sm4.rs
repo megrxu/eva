@@ -10,9 +10,7 @@ impl SM4 {
     pub fn new(key: &[u8]) -> SM4 {
         let mut round_keys = vec![[0; 4]; 32];
         key_expansion(key, &mut round_keys);
-        SM4 {
-            round_keys: round_keys,
-        }
+        SM4 { round_keys }
     }
 
     pub fn encrypt(self, data: &[u8]) -> Vec<u8> {
@@ -42,8 +40,8 @@ fn key_expansion(key: &[u8], round_keys: &mut [u8x4]) {
         create_u8x4(FK[3]),
     ]);
     for i in 0..32 {
-        let rk = reg[0].xor(&lprime_substitution(&tau_substitution(
-            &reg[1].xor(&reg[2].xor(&reg[3].xor(&create_u8x4(CK[i])))),
+        let rk = reg[0].xor(&lprime_substitution(tau_substitution(
+            reg[1].xor(&reg[2].xor(&reg[3].xor(&create_u8x4(CK[i])))),
         )));
         round_keys[i] = rk;
         reg = [reg[1], reg[2], reg[3], rk];
@@ -56,22 +54,22 @@ fn reverse(input: &SM4state) -> SM4state {
 
 fn round_function(input: &[u8x4], round_key: &u8x4) -> u8x4 {
     let (x0, x1, x2, x3) = (input[0], input[1], input[2], input[3]);
-    x0.xor(&l_substitution(&tau_substitution(
-        &x1.xor(&x2.xor(&x3.xor(&round_key))),
+    x0.xor(&l_substitution(tau_substitution(
+        x1.xor(&x2.xor(&x3.xor(&round_key))),
     )))
 }
 
 fn inv_round_function(input: &[u8x4], round_key: &u8x4) -> u8x4 {
     let (x3, x2, x1, x0) = (input[0], input[1], input[2], input[3]);
-    x0.xor(&l_substitution(&tau_substitution(
-        &x1.xor(&x2.xor(&x3.xor(&round_key))),
+    x0.xor(&l_substitution(tau_substitution(
+        x1.xor(&x2.xor(&x3.xor(&round_key))),
     )))
 }
 
-fn tau_substitution(input: &u8x4) -> u8x4 {
+fn tau_substitution(input: u8x4) -> u8x4 {
     input.sub_sbox(&SBOX)
 }
-fn l_substitution(input: &u8x4) -> u8x4 {
+fn l_substitution(input: u8x4) -> u8x4 {
     let word = u8x4_to_u32(input);
     create_u8x4(
         word ^ word.rotate_left(2)
@@ -81,8 +79,8 @@ fn l_substitution(input: &u8x4) -> u8x4 {
     )
 }
 
-fn lprime_substitution(input: &u8x4) -> u8x4 {
-    let word = u8x4_to_u32(&input);
+fn lprime_substitution(input: u8x4) -> u8x4 {
+    let word = u8x4_to_u32(input);
     create_u8x4(word ^ (word.rotate_left(13)) ^ (word.rotate_left(23)))
 }
 
@@ -105,11 +103,39 @@ pub static SBOX: [u8; 256] = [
     0x18, 0xf0, 0x7d, 0xec, 0x3a, 0xdc, 0x4d, 0x20, 0x79, 0xee, 0x5f, 0x3e, 0xd7, 0xcb, 0x39, 0x48,
 ];
 
-pub static FK: [u32; 4] = [0xa3b1bac6, 0x56aa3350, 0x677d9197, 0xb27022dc];
+pub static FK: [u32; 4] = [0xa3b1_bac6, 0x56aa_3350, 0x677d_9197, 0xb270_22dc];
 
 pub static CK: [u32; 32] = [
-    0x00070E15, 0x1C232A31, 0x383F464D, 0x545B6269, 0x70777E85, 0x8C939AA1, 0xA8AFB6BD, 0xC4CBD2D9,
-    0xE0E7EEF5, 0xFC030A11, 0x181F262D, 0x343B4249, 0x50575E65, 0x6C737A81, 0x888F969D, 0xA4ABB2B9,
-    0xC0C7CED5, 0xDCE3EAF1, 0xF8FF060D, 0x141B2229, 0x30373E45, 0x4C535A61, 0x686F767D, 0x848B9299,
-    0xA0A7AEB5, 0xBCC3CAD1, 0xD8DFE6ED, 0xF4FB0209, 0x10171E25, 0x2C333A41, 0x484F565D, 0x646B7279,
+    0x0007_0E15,
+    0x1C23_2A31,
+    0x383F_464D,
+    0x545B_6269,
+    0x7077_7E85,
+    0x8C93_9AA1,
+    0xA8AF_B6BD,
+    0xC4CB_D2D9,
+    0xE0E7_EEF5,
+    0xFC03_0A11,
+    0x181F_262D,
+    0x343B_4249,
+    0x5057_5E65,
+    0x6C73_7A81,
+    0x888F_969D,
+    0xA4AB_B2B9,
+    0xC0C7_CED5,
+    0xDCE3_EAF1,
+    0xF8FF_060D,
+    0x141B_2229,
+    0x3037_3E45,
+    0x4C53_5A61,
+    0x686F_767D,
+    0x848B_9299,
+    0xA0A7_AEB5,
+    0xBCC3_CAD1,
+    0xD8DF_E6ED,
+    0xF4FB_0209,
+    0x1017_1E25,
+    0x2C33_3A41,
+    0x484F_565D,
+    0x646B_7279,
 ];

@@ -13,16 +13,11 @@ impl SKINNY {
     pub fn new(key: &[u8], cell_size: u8) -> SKINNY {
         let round_keys: Vec<SKIstate> = key_expansion(key.to_vec(), cell_size);
 
-        let sbox: Vec<u8>;
-        let rsbox: Vec<u8>;
-
-        if cell_size == 4 {
-            sbox = SBOX_4.to_vec();
-            rsbox = RSBOX_4.to_vec();
+        let (sbox, rsbox) = if cell_size == 4 {
+            (SBOX_4.to_vec(), RSBOX_4.to_vec())
         } else {
-            sbox = SBOX_8.to_vec();
-            rsbox = RSBOX_8.to_vec();
-        }
+            (SBOX_8.to_vec(), RSBOX_8.to_vec())
+        };
 
         SKINNY {
             round_keys,
@@ -203,5 +198,5 @@ pub static RCON: [u8; 62] = [
     0x09, 0x13, 0x26, 0x0C, 0x19, 0x32, 0x25, 0x0A, 0x15, 0x2A, 0x14, 0x28, 0x10, 0x20,
 ];
 
-static MDS: [[u8; 4]; 4] = [[1, 0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0], [1, 0, 1, 0]];
-static RMDS: [[u8; 4]; 4] = [[0, 1, 0, 0], [0, 1, 1, 1], [0, 1, 0, 1], [1, 0, 0, 1]];
+pub static MDS: [[u8; 4]; 4] = [[1, 0, 1, 1], [1, 0, 0, 0], [0, 1, 1, 0], [1, 0, 1, 0]];
+pub static RMDS: [[u8; 4]; 4] = [[0, 1, 0, 0], [0, 1, 1, 1], [0, 1, 0, 1], [1, 0, 0, 1]];

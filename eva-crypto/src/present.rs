@@ -18,7 +18,7 @@ impl PRESENT {
         key_expansion(key.to_vec(), &mut round_keys);
 
         PRESENT {
-            round_keys: round_keys,
+            round_keys,
             sbox: SBOX,
             rsbox: RSBOX,
         }
@@ -91,8 +91,8 @@ fn key_expansion(key: Vec<u8>, round_keys: &mut [PREstate]) {
         _ => panic!("Key length {} is not valid!", keysize),
     }
 
-    for i in 0..rounds {
-        round_keys[i] = create_u8x4x4(&restore_data(&k_register, 4)[0..16]);
+    for (i, round_key) in round_keys.iter_mut().enumerate().take(rounds) {
+        *round_key = create_u8x4x4(&restore_data(&k_register, 4)[0..16]);
         // rotate left 61 bits
         k_register[..].rotate_left(61);
         let mut buffer = restore_data(&k_register, 4);

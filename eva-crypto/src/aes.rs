@@ -16,7 +16,7 @@ impl AES {
         key_expansion(key, &mut round_keys);
 
         AES {
-            round_keys: round_keys,
+            round_keys,
             sbox: SBOX,
             rsbox: RSBOX,
         }
