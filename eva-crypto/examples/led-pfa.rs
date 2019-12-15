@@ -31,7 +31,7 @@ fn main() -> io::Result<()> {
                 let e = state[x]
                     .gmul(&RMDS[y], 4)
                     .iter()
-                    .fold(0x00, |res, i| res ^ i);;
+                    .fold(0x00, |res, i| res ^ i);
                 stats[x * 4 + y as usize][e as usize] += 1;
             }
         }

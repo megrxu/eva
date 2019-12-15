@@ -1,4 +1,3 @@
-#[macro_use]
 use eva_builder::generic::*;
 
 #[cfg(test)]
