@@ -1,3 +1,3 @@
 # Eva Project
 
-![status](https://api.travis-ci.org/megrxu/eva.svg?branch=master)
+![status](https://github.com/megrxu/eva/workflows/Build/badge.svg)

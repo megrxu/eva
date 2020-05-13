@@ -1,4 +1,6 @@
-type BFstate = [u32; 2];
+#![allow(non_snake_case)]
+
+type BFstate = u64;
 
 #[derive(Clone)]
 pub struct BlowFish {
@@ -15,15 +17,15 @@ impl BlowFish {
         let (parray, sbox) = Self::constants_init(&dummy, key);
         BlowFish { parray, sbox }
     }
-    pub fn encrypt(&self, data: u64) -> u64 {
+    pub fn encrypt(&self, data: BFstate) -> BFstate {
         let (mut L, mut R) = ((data >> 32) as u32, (data & 0xffffffff) as u32);
         self.encrypt_aux(&mut L, &mut R);
-        (L as u64).overflowing_shl(32).0 + R as u64
+        (L as BFstate).overflowing_shl(32).0 + R as BFstate
     }
-    pub fn decrypt(&self, data: u64) -> u64 {
+    pub fn decrypt(&self, data: BFstate) -> BFstate {
         let (mut L, mut R) = ((data >> 32) as u32, (data & 0xffffffff) as u32);
         self.decrypt_aux(&mut L, &mut R);
-        (L as u64).overflowing_shl(32).0 + R as u64
+        (L as BFstate).overflowing_shl(32).0 + R as BFstate
     }
 
     fn encrypt_aux(&self, L: &mut u32, R: &mut u32) {
