@@ -20,12 +20,12 @@ impl BlowFish {
     pub fn encrypt(&self, data: BFstate) -> BFstate {
         let (mut L, mut R) = ((data >> 32) as u32, (data & 0xffffffff) as u32);
         self.encrypt_aux(&mut L, &mut R);
-        (L as BFstate).overflowing_shl(32).0 + R as BFstate
+        (R as BFstate).overflowing_shl(32).0 + L as BFstate
     }
     pub fn decrypt(&self, data: BFstate) -> BFstate {
         let (mut L, mut R) = ((data >> 32) as u32, (data & 0xffffffff) as u32);
         self.decrypt_aux(&mut L, &mut R);
-        (L as BFstate).overflowing_shl(32).0 + R as BFstate
+        (R as BFstate).overflowing_shl(32).0 + L as BFstate
     }
 
     fn encrypt_aux(&self, L: &mut u32, R: &mut u32) {
@@ -37,9 +37,6 @@ impl BlowFish {
         }
         *L ^= self.parray[16];
         *R ^= self.parray[17];
-        let tmp = *L;
-        *L = *R;
-        *R = tmp;
     }
 
     fn decrypt_aux(&self, L: &mut u32, R: &mut u32) {
@@ -51,9 +48,6 @@ impl BlowFish {
         }
         *L ^= self.parray[1];
         *R ^= self.parray[0];
-        let tmp = *L;
-        *L = *R;
-        *R = tmp;
     }
 
     fn constants_init(&self, key: &[u32]) -> ([u32; 18], [[u32; 256]; 4]) {
@@ -63,18 +57,17 @@ impl BlowFish {
         for (i, e) in parray.iter_mut().enumerate() {
             *e ^= key[i % key_len]
         }
-        let mut L: u32 = 0;
-        let mut R: u32 = 0;
+        let mut m: u64 = 0;
         for i in (0..18).step_by(2) {
-            Self::encrypt_aux(&BlowFish { parray, sbox }, &mut L, &mut R);
-            parray[i] = L;
-            parray[i + 1] = R;
+            m = Self::encrypt(&BlowFish { parray, sbox }, m);
+            parray[i] = (m >> 32) as u32;
+            parray[i + 1] = m as u32;
         }
         for i in 0..4 {
             for j in (0..256).step_by(2) {
-                Self::encrypt_aux(&BlowFish { parray, sbox }, &mut L, &mut R);
-                sbox[i][j] = L;
-                sbox[i][j + 1] = R;
+                m = Self::encrypt(&BlowFish { parray, sbox }, m);
+                sbox[i][j] = (m >> 32) as u32;
+                sbox[i][j + 1] = m as u32;
             }
         }
         (parray, sbox)
