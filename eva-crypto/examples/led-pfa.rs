@@ -23,8 +23,6 @@ fn main() -> io::Result<()> {
         let mut buffer = [0u8; 16];
         fc.read(&mut buffer);
 
-        let key = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0xa, 0xb, 0xc, 0xd, 0xe, 0xf];
-        let key_state = create_u8x4x4(&key);
         let state = transpose(&create_u8x4x4(&buffer));
         for x in 0..4 {
             for y in 0..4 {

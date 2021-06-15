@@ -20,7 +20,7 @@ impl LED {
         let keysize = key.len() * 4;
         let ns = match keysize {
             64 => 8,
-            80 => 10,
+            80 => 12,
             128 => 12,
             _ => unimplemented!(),
         };
@@ -118,10 +118,10 @@ fn shift_rows(state: &LEDstate) -> LEDstate {
 fn inv_shift_rows(state: &LEDstate) -> LEDstate {
     state.rrot()
 }
-fn mix_columns_serial(state: &LEDstate) -> LEDstate {
+pub fn mix_columns_serial(state: &LEDstate) -> LEDstate {
     state.gmul(&MDS, 4)
 }
-fn inv_mix_columns_serial(state: &LEDstate) -> LEDstate {
+pub fn inv_mix_columns_serial(state: &LEDstate) -> LEDstate {
     state.gmul(&RMDS, 4)
 }
 

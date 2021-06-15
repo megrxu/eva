@@ -1,4 +1,6 @@
 use eva_crypto::led;
+use eva_crypto::led::mix_columns_serial;
+use eva_crypto::generic::*;
 
 #[cfg(test)]
 #[test]
@@ -8,6 +10,12 @@ fn led_64() {
     let ciphertext: [u8; 16] = [
         0xa, 0x0, 0x0, 0x3, 0x5, 0x5, 0x1, 0xe, 0x3, 0x8, 0x9, 0x3, 0xf, 0xc, 0x5, 0x8,
     ];
+
+    let msg = create_u8x4x4(&key.clone());
+    println!("{:x?}", mix_columns_serial(&msg));
+    println!("{:x?}", 8u8.gmul(&8, 4));
+
+    assert!(false);
     assert_eq!(led::LED::new(&key).encrypt(&plaintext), ciphertext.to_vec());
 }
 
